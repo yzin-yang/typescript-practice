@@ -1,14 +1,69 @@
-// item的类型取决于调用函数时传入的类型参数
-type Callback = <T>(item: T) => void;
+// 函数的返回值类型中 通过类型谓词 is 来保护返回值的类型
 
-const forEach = <T>(arr: T[], callback: Callback) => {
-  for (let i = 0; i < arr.length - 1; i++) {
-    // 这里调用callback时，ts并不会执行我们的代码。
-    // 换句话说：它并不清楚arr[i]是什么类型
-    callback(arr[i]);
-    callback(1);
-  }
-};
+// demo1
+function isNumber(arg: number | string): arg is number {
+    return typeof arg === 'number';
+}
 
-// 所以这里我们并不清楚 callback 定义中的T是什么类型，自然它的类型还是T
-forEach(['1', 2, 3, '4'], <T>(item: T) => {});
+function getTypeByVal(val: number | string) {
+    if (isNumber(val)) {
+        // 此时由于isNumber函数返回值根据类型谓词的保护
+        // 所以可以断定如果 isNumber 返回true 那么传入的参数 val 一定是 number 类型
+        val.toFixed();
+    }
+    // 等价于下面代码
+    if (typeof val === 'number') {
+        val.toFixed();
+    }
+}
+
+// demo2
+// 定义一个动物的接口
+interface Animal {
+    eat: () => void;
+}
+class Dog implements Animal {
+    eat() {
+        console.log('dog eat');
+    }
+    jump() {
+        console.log('jump');
+    }
+}
+class Cat implements Animal {
+    eat() {
+        console.log('dog eat');
+    }
+    jump() {
+        console.log('jump');
+    }
+}
+class UseAnimal {
+    constructor(public animal: Animal) {}
+}
+
+const dog = new Dog();
+const dogAnimal = new UseAnimal(dog);
+const { animal: animal1 } = dogAnimal;
+animal1.jump();
+if (animal1 instanceof Dog) {
+    animal1.jump();
+}
+const cat = new Cat();
+const catAnimal = new UseAnimal(cat);
+const { animal: animal2 } = catAnimal;
+animal2.jump();
+if (animal2 instanceof Cat) {
+    animal2.jump();
+}
+
+// 实现一个可扩展的判断函数
+function check<T>(animal: any, key: keyof T): animal is T {
+    return animal[key] !== undefined;
+}
+if (check(animal1, 'jump')) {
+    animal1.jump();
+}
+if (check(animal2, 'jump')) {
+    animal2.jump();
+}
