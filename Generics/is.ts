@@ -65,12 +65,13 @@ if (check(animal1, 'jump')) {
 if (check(animal2, 'jump')) {
     animal2.jump();
 }
+
 // TODO 如果要限制 animal 为 Animal，该怎么写
 const test = 'test';
 if (check(test, 'jump')) {
     test.jump();
 }
-
+// 初始版本
 function canJump<T extends Animal>(
     animal: T
 ): animal is T & { jump: Function } {
@@ -79,12 +80,16 @@ function canJump<T extends Animal>(
 if (canJump(animal1)) {
     animal1.jump();
 }
-function check1<T extends Animal>(
+// 通用版本
+function check1<T extends Animal, K extends keyof any>(
     animal: T,
-    key: keyof any
-): animal is T & { key: Function } {
-    return key in animal;
+    key: K
+): animal is T & { [P in K]: Function } {
+    return typeof (animal as any)[key] === 'function';
 }
 if (check1(animal1, 'jump')) {
     animal1.jump();
+}
+if (check1(animal1, 'run')) {
+    animal1.run();
 }
